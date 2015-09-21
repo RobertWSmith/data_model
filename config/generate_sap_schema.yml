@@ -1,0 +1,20 @@
+base: SAP_Base = declarative_base(name="SAP_Base", cls=SchemaBase)
+default_fmt: default = {default}
+doc_fmt: doc = """Field sourced from {table_name}-{field_name} ||| {description}"""
+field_fmt: '    {field_name} = Column(''{field_name}'', {type}, {kwargs})'
+idx: index = True
+imports: '
+
+  from sqlalchemy import Column, String
+
+  from .custom_type import CoerceDate, CoerceTime, CoerceBoolean, CoerceNumeric, CoerceInteger
+
+
+  '
+pk: primary_key = True
+synonym_fmt: '    {synonym} = synonym(''field_name'')'
+table_fmt: "\n################################################################################\n\
+  \nclass {table_synonym}({objects}):\n    \"\"\"\n    {class_doc}\n    \"\"\"\n\n\
+  \    __tablename__ = \"{tablename}\"\n\n{table_args}\n\n{mapper_args}\n\n{fields}\n\
+  \n{field_synonyms}\n\n{relationships}\n\n\n################################################################################\n"
+unq: unique = True
