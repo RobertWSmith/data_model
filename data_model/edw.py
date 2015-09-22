@@ -7,16 +7,11 @@ Created on Tue Aug 25 10:49:47 2015
 
 
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
-from sqlalchemy import Column, Date, Time, DateTime, Integer, Numeric, Boolean, String
-from sqlalchemy import create_engine, event
+from sqlalchemy import Column, Date, Integer, Numeric, Boolean, String
+from sqlalchemy import create_engine
 from sqlalchemy.orm import relationship, synonym
-#from sqlalchemy.exc import ProgrammingError
 
-import psycopg2
-#import yaml
-
-import sandman.model
-
+import yaml
 
 
 class SchemaBase(object):
@@ -28,28 +23,7 @@ class SchemaBase(object):
     __table_args__ = {'schema': 'edw'}
 
 
-
 EDW_Base = declarative_base(name='EDW_Base', cls=SchemaBase)
-
-def local_connect(user="rws", password="rws", host="10.76.26.161", port=5432, dbname="central"):
-    return psycopg2.connect(user=user, password=password, host=host, port=port, dbname=dbname)
-
-
-
-def grant_all_on_public(tableobj, connect=local_connect):
-    conn = connect()
-    sql = "GRANT ALL ON {0}.{1} TO PUBLIC;".format(tableobj.__table_args__.get('schema', 'public'), tableobj.__tablename__)
-    conn.execute(sql)
-    conn.close()
-
-def run_vacuum_analyze(connect=local_connect):
-    conn = connect()
-    conn.set_isolation_level(0)
-    conn.cursor().execute("VACUUM ANALYZE")
-    conn.close()
-
-
-
 
 
 class Calendar(EDW_Base):
@@ -77,9 +51,8 @@ class Calendar(EDW_Base):
     cal_yr = Column(Integer)
 
 
-# register class with REST API
-sandman.model.register(Calendar)
-
+#register yaml constructor
+yaml.add_constructor('!CalendarTable', lambda loader, node: Calendar)
 
 
 class Material(EDW_Base):
@@ -145,10 +118,8 @@ class Material(EDW_Base):
      prty_src_facl_nm = Column(String(40))
 
 
-
-# register class with REST API
-sandman.model.register(Material)
-
+#register yaml constructor
+yaml.add_constructor('!MaterialTable', lambda loader, node: Material)
 
 
 class Facility(EDW_Base):
@@ -173,9 +144,9 @@ class Facility(EDW_Base):
     city_id = Column(String(35))
 
 
+#register yaml constructor
+yaml.add_constructor('!FacilityTable', lambda loader, node: Facility)
 
-# register class with REST API
-sandman.model.register(Facility)
 
 
 class Customer(EDW_Base):
@@ -213,9 +184,8 @@ class Customer(EDW_Base):
     cust_id = synonym('ship_to_cust_id')
 
 
-
-# register class with REST API
-sandman.model.register(Customer)
+#register yaml constructor
+yaml.add_constructor('!CustomerTable', lambda loader, node: Customer)
 
 
 class UnitsAtRisk(EDW_Base):
@@ -261,37 +231,17 @@ class UnitsAtRisk(EDW_Base):
     cust_id = synonym('sold_to_cust_id')
 
 
-# register class with REST API
-sandman.model.register(UnitsAtRisk)
-
-
-
-def drop_tables(eng_url):
-    eng = create_engine(eng_url, echo=True)
-    EDW_Base.metadata.drop_all(eng)
-
-def create_tables(eng_url):
-    eng = create_engine(eng_url, echo=True)
-    EDW_Base.metadata.create_all(eng)
+#register yaml constructor
+yaml.add_constructor('!UnitsAtRiskTable', lambda loader, node: UnitsAtRisk)
 
 
 
 __all__ = ['EDW_Base', 'Calendar', 'Material', 'Facility', 'Customer', 'UnitsAtRisk']
 
 
-
 if __name__ == '__main__':
     eng_url = 'postgresql+psycopg2://rws:rws@10.76.26.161:5432/central'
-#    eng_url = "sqlite:///:memory:"
-
-    drop_tables(eng_url)
-    create_tables(eng_url)
-
-    run_vacuum_analyze()
-
-
-
-
-
+    eng = create_engine(eng_url, echo=True)
+    EDW_Base.metadata.create_all(eng)
 
 
