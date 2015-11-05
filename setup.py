@@ -9,13 +9,12 @@ from setuptools import setup, find_packages
 
 setup(
     name="data_model",
-    version = "0.0.1",
-    packages = find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests", "*.egg-info"]),
+    version = "0.0.3",
+    packages = find_packages(exclude=["alembic", "build", "config", "*.tests", "*.tests.*", "tests.*", "tests", "*.egg-info", "*__pycache__", "dist", "alembic.ini", "generate_sap_model.py"]),
     author = "Robert Smith",
     author_email = "rob_smith@goodyear.com",
     description = "common sqlalchemy data model",
-    install_requires = ['sqlalchemy', 'psycopg2', 'pyodbc'],
+    install_requires = ['sqlalchemy >= 1.0.9', 'psycopg2', 'pyodbc', 'architect', 'pyyaml >= 3.11'],
     test_suite = 'tests'
 )
-
 
